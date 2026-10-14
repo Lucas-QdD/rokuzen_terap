@@ -44,13 +44,14 @@ void main() {
           'paciente',
           'atendimento',
           'disponibilidade',
+          'sessao',
         ]),
       );
     });
 
     test('versão do banco é a última migração', () async {
       expect(await db.getVersion(), schemaVersion);
-      expect(schemaVersion, 1);
+      expect(schemaVersion, 2);
     });
 
     test('foreign keys estão habilitadas', () async {
@@ -390,5 +391,47 @@ void main() {
       );
       await db.close();
     });
+  });
+
+  group('RKZ-02 migração do banco v1 para v2', () {
+    late Directory dir;
+
+    setUp(
+      () async => dir = await Directory.systemTemp.createTemp('rokuzen_mig_'),
+    );
+    tearDown(() => dir.delete(recursive: true));
+
+    test(
+      'banco já instalado ganha a tabela de sessão sem perder dados',
+      () async {
+        final caminho = p.join(dir.path, databaseFileName);
+
+        // Banco como estava na versão 1 do app, já com o seed.
+        var db = await databaseFactoryFfi.openDatabase(
+          caminho,
+          options: OpenDatabaseOptions(
+            version: 1,
+            onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+            onCreate: (db, _) async {
+              await runMigrations(db, 0, 1);
+              await seedDemoData(db, hoje: _hoje);
+            },
+          ),
+        );
+        final totalAtendimentos = await _contar(db, 'atendimento');
+        await db.close();
+
+        db = await openAppDatabase(
+          factory: databaseFactoryFfi,
+          path: caminho,
+          hoje: _hoje,
+        );
+        expect(await db.getVersion(), schemaVersion);
+        expect(await _contar(db, 'sessao'), 0);
+        expect(await _contar(db, 'terapeuta'), 1);
+        expect(await _contar(db, 'atendimento'), totalAtendimentos);
+        await db.close();
+      },
+    );
   });
 }
