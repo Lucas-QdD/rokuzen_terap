@@ -9,6 +9,9 @@ final hojeTeste = DateTime(2026, 10, 14);
 ///
 /// Usa a factory FFI sem isolate para funcionar também dentro de `testWidgets`
 /// (o fake async do teste de widget não espera respostas de outro isolate).
+///
+/// Atenção: enquanto um banco em memória estiver aberto, abrir outro devolve a
+/// mesma instância. Use um só por teste.
 Future<Database> abrirBancoDeTeste({bool seed = true}) async {
   sqfliteFfiInit();
   final db = await openAppDatabase(
