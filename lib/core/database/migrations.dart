@@ -72,6 +72,16 @@ const Map<int, List<String>> migrations = {
     'CREATE INDEX idx_atendimento_terapeuta_inicio ON atendimento(terapeuta_id, inicio)',
     'CREATE INDEX idx_disponibilidade_terapeuta_inicio ON disponibilidade(terapeuta_id, inicio)',
   ],
+  // Sessão do terapeuta logado no aparelho (RKZ-02). No máximo uma linha.
+  2: [
+    '''
+    CREATE TABLE sessao (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      terapeuta_id INTEGER NOT NULL REFERENCES terapeuta(id) ON DELETE CASCADE,
+      iniciada_em TEXT NOT NULL
+    )
+    ''',
+  ],
 };
 
 /// Versão atual do schema (a maior chave de [migrations]).
