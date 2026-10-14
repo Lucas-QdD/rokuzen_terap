@@ -210,7 +210,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Atendimento'), findsOneWidget);
 
-      await tester.pageBack();
+      await tester.tap(find.byTooltip('Voltar'));
       await tester.pumpAndSettle();
       expect(find.text('quinta-feira, 15 de outubro'), findsOneWidget);
     });

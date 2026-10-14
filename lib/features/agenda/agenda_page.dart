@@ -8,10 +8,10 @@ import '../../core/utils/datas.dart';
 import '../../data/models/atendimento_detalhado.dart';
 import '../auth/auth_controller.dart';
 import 'agenda_providers.dart';
+import 'agenda_semanal.dart';
 import 'status_atendimento_chip.dart';
 
-/// Agenda do dia (RKZ-03): atendimentos em ordem de horário, com navegação
-/// entre os dias.
+/// Agenda do terapeuta, na visão diária (RKZ-03) ou semanal (RKZ-04).
 class AgendaPage extends ConsumerWidget {
   const AgendaPage({super.key});
 
@@ -19,13 +19,16 @@ class AgendaPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dia = ref.watch(diaSelecionadoProvider);
     final hoje = somenteData(ref.watch(agoraProvider)());
-    final atendimentos = ref.watch(atendimentosDoDiaProvider(dia));
+    final visao = ref.watch(visaoAgendaProvider);
+    final foraDeHoje = visao == VisaoAgenda.dia
+        ? dia != hoje
+        : inicioDaSemana(dia) != inicioDaSemana(hoje);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agenda'),
         actions: [
-          if (dia != hoje)
+          if (foraDeHoje)
             IconButton(
               tooltip: 'Ir para hoje',
               icon: const Icon(Icons.today),
@@ -40,21 +43,66 @@ class AgendaPage extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          _SeletorDeDia(dia: dia, hoje: hoje),
-          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: SegmentedButton<VisaoAgenda>(
+              segments: const [
+                ButtonSegment(
+                  value: VisaoAgenda.dia,
+                  label: Text('Dia'),
+                  icon: Icon(Icons.view_day_outlined),
+                ),
+                ButtonSegment(
+                  value: VisaoAgenda.semana,
+                  label: Text('Semana'),
+                  icon: Icon(Icons.view_week_outlined),
+                ),
+              ],
+              selected: {visao},
+              showSelectedIcon: false,
+              onSelectionChanged: (selecao) => ref
+                  .read(visaoAgendaProvider.notifier)
+                  .mostrar(selecao.single),
+            ),
+          ),
           Expanded(
-            child: switch (atendimentos) {
-              AsyncData(:final value) when value.isEmpty => const _DiaVazio(),
-              AsyncData(:final value) => _ListaDoDia(atendimentos: value),
-              AsyncError() => const _Aviso(
-                icone: Icons.error_outline,
-                texto: 'Não foi possível carregar a agenda.',
-              ),
-              _ => const Center(child: CircularProgressIndicator()),
+            child: switch (visao) {
+              VisaoAgenda.dia => _VisaoDiaria(dia: dia, hoje: hoje),
+              VisaoAgenda.semana => VisaoSemanal(dia: dia, hoje: hoje),
             },
           ),
         ],
       ),
+    );
+  }
+}
+
+class _VisaoDiaria extends ConsumerWidget {
+  const _VisaoDiaria({required this.dia, required this.hoje});
+
+  final DateTime dia;
+  final DateTime hoje;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final atendimentos = ref.watch(atendimentosDoDiaProvider(dia));
+
+    return Column(
+      children: [
+        _SeletorDeDia(dia: dia, hoje: hoje),
+        const Divider(height: 1),
+        Expanded(
+          child: switch (atendimentos) {
+            AsyncData(:final value) when value.isEmpty => const _DiaVazio(),
+            AsyncData(:final value) => _ListaDoDia(atendimentos: value),
+            AsyncError() => const _Aviso(
+              icone: Icons.error_outline,
+              texto: 'Não foi possível carregar a agenda.',
+            ),
+            _ => const Center(child: CircularProgressIndicator()),
+          },
+        ),
+      ],
     );
   }
 }
