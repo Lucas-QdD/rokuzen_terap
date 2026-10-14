@@ -30,7 +30,7 @@ void main() {
       await abrirApp(tester, db);
 
       expect(find.text('Agenda'), findsOneWidget);
-      expect(find.textContaining('Terapeuta Demonstração'), findsOneWidget);
+      expect(find.text('Hoje'), findsOneWidget);
       expect(find.text('Entrar'), findsNothing);
     });
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/agenda/agenda_page.dart';
+import '../features/agenda/atendimento_page.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_page.dart';
 
@@ -10,6 +11,8 @@ abstract final class Rotas {
   static const String carregando = '/carregando';
   static const String login = '/login';
   static const String agenda = '/agenda';
+
+  static String atendimento(int id) => '$agenda/atendimento/$id';
 }
 
 /// Rotas do app. Sem sessão, qualquer rota leva ao login; com sessão, o
@@ -49,6 +52,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Rotas.agenda,
         builder: (context, state) => const AgendaPage(),
+        routes: [
+          GoRoute(
+            path: 'atendimento/:id',
+            builder: (context, state) => AtendimentoPage(
+              id: int.tryParse(state.pathParameters['id'] ?? ''),
+            ),
+          ),
+        ],
       ),
     ],
   );
