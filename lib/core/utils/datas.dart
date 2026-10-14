@@ -8,8 +8,37 @@ import 'package:intl/intl.dart';
 const String _locale = 'pt_BR';
 
 /// [data] à meia-noite (sem horário), no fuso local.
+///
+/// Também converte os dias em UTC do table_calendar para o dia local
+/// equivalente (mesmo ano, mês e dia).
 DateTime somenteData(DateTime data) =>
     DateTime(data.year, data.month, data.day);
+
+/// Domingo da semana de [dia] (a semana vai de domingo a sábado).
+DateTime inicioDaSemana(DateTime dia) =>
+    DateTime(dia.year, dia.month, dia.day - dia.weekday % DateTime.daysPerWeek);
+
+/// Os sete dias da semana de [dia], de domingo a sábado.
+List<DateTime> diasDaSemana(DateTime dia) {
+  final domingo = inicioDaSemana(dia);
+  return [
+    for (var i = 0; i < DateTime.daysPerWeek; i++)
+      DateTime(domingo.year, domingo.month, domingo.day + i),
+  ];
+}
+
+/// Intervalo da semana de [dia], ex.: `11 a 17 de outubro` ou
+/// `27 de setembro a 3 de outubro`.
+String formatarSemana(DateTime dia) {
+  final dias = diasDaSemana(dia);
+  final inicio = dias.first;
+  final fim = dias.last;
+  final diaEMes = DateFormat("d 'de' MMMM", _locale);
+  final de = inicio.month == fim.month
+      ? '${inicio.day}'
+      : diaEMes.format(inicio);
+  return '$de a ${diaEMes.format(fim)}';
+}
 
 /// Hora no formato 24 h, ex.: `09:05`.
 String formatarHora(DateTime data) => DateFormat('HH:mm', _locale).format(data);

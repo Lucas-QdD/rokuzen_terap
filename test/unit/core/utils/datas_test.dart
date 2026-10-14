@@ -46,6 +46,56 @@ void main() {
     });
   });
 
+  group('RKZ-04 datas da semana', () {
+    test(
+      'somenteData converte dia em UTC (table_calendar) para o dia local',
+      () {
+        final convertido = somenteData(DateTime.utc(2026, 10, 15));
+        expect(convertido, DateTime(2026, 10, 15));
+        expect(convertido.isUtc, isFalse);
+      },
+    );
+
+    test('a semana começa no domingo', () {
+      expect(
+        inicioDaSemana(DateTime(2026, 10, 14, 15)),
+        DateTime(2026, 10, 11),
+      );
+      expect(inicioDaSemana(DateTime(2026, 10, 11)), DateTime(2026, 10, 11));
+      expect(
+        inicioDaSemana(DateTime(2026, 10, 17, 23)),
+        DateTime(2026, 10, 11),
+      );
+    });
+
+    test('inicioDaSemana atravessa a virada de mês e de ano', () {
+      expect(inicioDaSemana(DateTime(2026, 10, 31)), DateTime(2026, 10, 25));
+      expect(inicioDaSemana(DateTime(2026, 11, 3)), DateTime(2026, 11, 1));
+      expect(inicioDaSemana(DateTime(2027, 1, 1)), DateTime(2026, 12, 27));
+    });
+
+    test('diasDaSemana lista os sete dias de domingo a sábado', () {
+      expect(diasDaSemana(DateTime(2026, 10, 14)), [
+        for (var d = 11; d <= 17; d++) DateTime(2026, 10, d),
+      ]);
+      expect(diasDaSemana(DateTime(2026, 12, 30)).last, DateTime(2027, 1, 2));
+    });
+
+    test('formatarSemana mostra o intervalo de dias', () {
+      expect(formatarSemana(DateTime(2026, 10, 14)), '11 a 17 de outubro');
+      expect(formatarSemana(DateTime(2026, 10, 28)), '25 a 31 de outubro');
+      expect(
+        formatarSemana(DateTime(2026, 9, 30)),
+        '27 de setembro a 3 de outubro',
+      );
+      expect(formatarSemana(DateTime(2026, 11, 2)), '1 a 7 de novembro');
+      expect(
+        formatarSemana(DateTime(2026, 12, 30)),
+        '27 de dezembro a 2 de janeiro',
+      );
+    });
+  });
+
   group('RKZ-05 duração do atendimento', () {
     test('menos de uma hora em minutos', () {
       expect(formatarDuracao(const Duration(minutes: 45)), '45 min');

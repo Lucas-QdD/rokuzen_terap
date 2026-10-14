@@ -39,7 +39,49 @@ class DiaSelecionado extends Notifier<DateTime> {
   void proximo() => state = DateTime(state.year, state.month, state.day + 1);
 
   void hoje() => state = _hoje();
+
+  /// Vai para [dia]; aceita os dias em UTC do table_calendar.
+  void ir(DateTime dia) => state = somenteData(dia);
+
+  void semanaAnterior() =>
+      state = DateTime(state.year, state.month, state.day - 7);
+
+  void proximaSemana() =>
+      state = DateTime(state.year, state.month, state.day + 7);
 }
+
+enum VisaoAgenda { dia, semana }
+
+/// Visão da agenda (diária ou semanal). Volta para a diária quando outro
+/// terapeuta faz login.
+final visaoAgendaProvider = NotifierProvider<VisaoAgendaNotifier, VisaoAgenda>(
+  VisaoAgendaNotifier.new,
+);
+
+class VisaoAgendaNotifier extends Notifier<VisaoAgenda> {
+  @override
+  VisaoAgenda build() {
+    ref.watch(_terapeutaIdProvider);
+    return VisaoAgenda.dia;
+  }
+
+  void mostrar(VisaoAgenda visao) => state = visao;
+}
+
+/// Quantidade de atendimentos por dia da semana de [domingo] (RKZ-04).
+final quantidadesDaSemanaProvider = FutureProvider.autoDispose
+    .family<Map<DateTime, int>, DateTime>((ref, domingo) async {
+      final dias = diasDaSemana(domingo);
+      final terapeutaId = ref.watch(_terapeutaIdProvider);
+      if (terapeutaId == null) return contarPorDia(const [], dias);
+      final repository = await ref.watch(atendimentoRepositoryProvider.future);
+      final lista = await repository.listarPorPeriodo(
+        terapeutaId,
+        dias.first,
+        DateTime(dias.last.year, dias.last.month, dias.last.day + 1),
+      );
+      return contarPorDia(lista, dias);
+    });
 
 /// Atendimentos de [dia] do terapeuta logado, em ordem de horário (RKZ-03).
 final atendimentosDoDiaProvider = FutureProvider.autoDispose

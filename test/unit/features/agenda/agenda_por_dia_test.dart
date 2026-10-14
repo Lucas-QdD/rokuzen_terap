@@ -95,4 +95,69 @@ void main() {
       expect(_ids(lista), [2, 1]);
     });
   });
+
+  group('RKZ-04 contar atendimentos por dia', () {
+    final semana = [for (var d = 11; d <= 17; d++) DateTime(2026, 10, d)];
+
+    test('todos os dias pedidos aparecem, com zero quando vazios', () {
+      final contagem = contarPorDia(const [], semana);
+      expect(contagem.keys, semana);
+      expect(contagem.values, everyElement(0));
+    });
+
+    test('conta os atendimentos de cada dia', () {
+      final contagem = contarPorDia([
+        _a(1, '2026-10-14 09:00', '2026-10-14 10:00'),
+        _a(2, '2026-10-14 13:00', '2026-10-14 14:00'),
+        _a(3, '2026-10-15 09:00', '2026-10-15 10:00'),
+        _a(4, '2026-10-17 18:00', '2026-10-17 19:00'),
+        _a(5, '2026-10-17 09:00', '2026-10-17 10:00'),
+        _a(6, '2026-10-17 11:00', '2026-10-17 12:00'),
+      ], semana);
+      expect(contagem.values, [0, 0, 0, 2, 1, 0, 3]);
+    });
+
+    test('ignora atendimentos fora dos dias pedidos', () {
+      final contagem = contarPorDia([
+        _a(1, '2026-10-10 09:00', '2026-10-10 10:00'),
+        _a(2, '2026-10-18 09:00', '2026-10-18 10:00'),
+        _a(3, '2026-10-12 09:00', '2026-10-12 10:00'),
+      ], semana);
+      expect(contagem.keys, semana);
+      expect(contagem[DateTime(2026, 10, 12)], 1);
+      expect(contagem.values.fold<int>(0, (a, b) => a + b), 1);
+    });
+
+    test('conta todas as situações, como a agenda do dia mostra', () {
+      final cancelado = _a(1, '2026-10-14 09:00', '2026-10-14 10:00');
+      final contagem = contarPorDia([
+        AtendimentoDetalhado(
+          atendimento: Atendimento.fromMap({
+            ...cancelado.atendimento.toMap(),
+            'status': 'cancelado',
+          }),
+          pacienteNome: 'P',
+          unidadeNome: 'U',
+        ),
+      ], semana);
+      expect(contagem[DateTime(2026, 10, 14)], 1);
+    });
+
+    test('dias com horário ou em UTC (table_calendar) viram a data local', () {
+      final contagem = contarPorDia(
+        [_a(1, '2026-10-14 09:00', '2026-10-14 10:00')],
+        [DateTime.utc(2026, 10, 14), DateTime(2026, 10, 15, 12)],
+      );
+      expect(contagem, {DateTime(2026, 10, 14): 1, DateTime(2026, 10, 15): 0});
+    });
+  });
+
+  group('RKZ-04 texto da quantidade', () {
+    test('zero, um e vários atendimentos', () {
+      expect(descreverQuantidade(0), 'Nenhum atendimento');
+      expect(descreverQuantidade(1), '1 atendimento');
+      expect(descreverQuantidade(2), '2 atendimentos');
+      expect(descreverQuantidade(12), '12 atendimentos');
+    });
+  });
 }

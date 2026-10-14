@@ -23,6 +23,26 @@ Map<DateTime, List<AtendimentoDetalhado>> agruparPorDia(
   return agenda;
 }
 
+/// Quantidade de atendimentos em cada um dos [dias] (RKZ-04), na ordem
+/// recebida e com zero nos dias vazios. Atendimentos fora de [dias] são
+/// ignorados. Conta todas as situações, como a agenda do dia exibe.
+Map<DateTime, int> contarPorDia(
+  Iterable<AtendimentoDetalhado> atendimentos,
+  Iterable<DateTime> dias,
+) {
+  final agenda = agruparPorDia(atendimentos);
+  return {
+    for (final dia in dias.map(somenteData)) dia: agenda[dia]?.length ?? 0,
+  };
+}
+
+/// Texto da quantidade, ex.: `Nenhum atendimento`, `1 atendimento`.
+String descreverQuantidade(int quantidade) => switch (quantidade) {
+  0 => 'Nenhum atendimento',
+  1 => '1 atendimento',
+  _ => '$quantidade atendimentos',
+};
+
 int _porHorario(AtendimentoDetalhado a, AtendimentoDetalhado b) {
   final x = a.atendimento;
   final y = b.atendimento;
