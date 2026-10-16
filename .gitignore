@@ -53,6 +53,10 @@ app.*.map.json
 *.db-wal
 *.db-shm
 
+# Capturas de tela geradas por `flutter test capturas` (só para a documentação)
+/capturas/telas/
+/capturas/failures/
+
 # Variáveis de ambiente / segredos
 .env
 .env.*
