@@ -40,6 +40,26 @@ String formatarSemana(DateTime dia) {
   return '$de a ${diaEMes.format(fim)}';
 }
 
+final RegExp _dataDigitada = RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$');
+
+/// Lê uma data digitada como `dd/mm/aaaa` (dia e mês com 1 ou 2 dígitos).
+/// Retorna `null` se o formato estiver errado ou a data não existir.
+DateTime? lerData(String texto) {
+  final partes = _dataDigitada.firstMatch(texto.trim());
+  if (partes == null) return null;
+  final dia = int.parse(partes[1]!);
+  final mes = int.parse(partes[2]!);
+  final ano = int.parse(partes[3]!);
+  final data = DateTime(ano, mes, dia);
+  // DateTime "corrige" datas como 31/02; se mudou, a data não existe.
+  final existe = data.year == ano && data.month == mes && data.day == dia;
+  return existe ? data : null;
+}
+
+/// Data no formato `dd/mm/aaaa`.
+String formatarData(DateTime data) =>
+    DateFormat('dd/MM/yyyy', _locale).format(data);
+
 /// Hora no formato 24 h, ex.: `09:05`.
 String formatarHora(DateTime data) => DateFormat('HH:mm', _locale).format(data);
 
