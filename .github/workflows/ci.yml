@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Um push novo na mesma branch cancela a execução anterior, que ficou obsoleta.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Análise e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar o Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Versão do Flutter
+        run: flutter --version
+
+      - name: Dependências
+        run: flutter pub get
+
+      # Os testes BDD gerados (test/features/*_test.dart e step/) estão
+      # versionados, então o build_runner não é necessário aqui.
+
+      - name: Análise estática
+        run: flutter analyze
+
+      # Roda só test/: as capturas de tela (capturas/) e o teste de
+      # integração (integration_test/, precisa de emulador) ficam de fora.
+      - name: Testes com cobertura
+        run: flutter test --coverage
