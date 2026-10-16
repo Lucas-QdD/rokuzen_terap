@@ -118,4 +118,37 @@ void main() {
       );
     });
   });
+
+  group('RKZ-06 data digitada (dd/mm/aaaa)', () {
+    test('lerData aceita dia e mês com um ou dois dígitos', () {
+      expect(lerData('12/04/1988'), DateTime(1988, 4, 12));
+      expect(lerData('1/4/1988'), DateTime(1988, 4, 1));
+      expect(lerData(' 05/11/2000 '), DateTime(2000, 11, 5));
+    });
+
+    test('lerData rejeita datas inexistentes e outros formatos', () {
+      for (final texto in [
+        '',
+        '31/02/1990',
+        '29/02/2023',
+        '00/01/2000',
+        '12/13/1988',
+        '12-04-1988',
+        '1988-04-12',
+        '12/04/88',
+        '12/04/1988 10:00',
+      ]) {
+        expect(lerData(texto), isNull, reason: texto);
+      }
+    });
+
+    test('lerData aceita 29 de fevereiro em ano bissexto', () {
+      expect(lerData('29/02/2024'), DateTime(2024, 2, 29));
+    });
+
+    test('formatarData usa dd/mm/aaaa', () {
+      expect(formatarData(DateTime(1988, 4, 12)), '12/04/1988');
+      expect(formatarData(DateTime(2000, 11, 5, 15)), '05/11/2000');
+    });
+  });
 }

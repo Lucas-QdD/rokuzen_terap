@@ -34,6 +34,11 @@ class AgendaPage extends ConsumerWidget {
               icon: const Icon(Icons.today),
               onPressed: () => ref.read(diaSelecionadoProvider.notifier).hoje(),
             ),
+          IconButton(
+            tooltip: 'Pacientes',
+            icon: const Icon(Icons.people_outline),
+            onPressed: () => context.go(Rotas.pacientes),
+          ),
           TextButton.icon(
             onPressed: () => ref.read(authControllerProvider.notifier).sair(),
             icon: const Icon(Icons.logout),

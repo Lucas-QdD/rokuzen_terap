@@ -6,11 +6,16 @@ import '../features/agenda/agenda_page.dart';
 import '../features/agenda/atendimento_page.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_page.dart';
+import '../features/pacientes/cadastro_paciente_page.dart';
+import '../features/pacientes/pacientes_page.dart';
 
 abstract final class Rotas {
   static const String carregando = '/carregando';
   static const String login = '/login';
   static const String agenda = '/agenda';
+
+  static const String pacientes = '$agenda/pacientes';
+  static const String novoPaciente = '$pacientes/novo';
 
   static String atendimento(int id) => '$agenda/atendimento/$id';
 }
@@ -58,6 +63,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => AtendimentoPage(
               id: int.tryParse(state.pathParameters['id'] ?? ''),
             ),
+          ),
+          GoRoute(
+            path: 'pacientes',
+            builder: (context, state) => const PacientesPage(),
+            routes: [
+              GoRoute(
+                path: 'novo',
+                builder: (context, state) => const CadastroPacientePage(),
+              ),
+            ],
           ),
         ],
       ),

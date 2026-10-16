@@ -14,11 +14,6 @@ final atendimentoRepositoryProvider = FutureProvider<AtendimentoRepository>(
       SqliteAtendimentoRepository(await ref.watch(databaseProvider.future)),
 );
 
-/// Id do terapeuta logado (`null` sem sessão).
-final _terapeutaIdProvider = Provider<int?>(
-  (ref) => ref.watch(authControllerProvider.select((a) => a.value?.id)),
-);
-
 /// Dia exibido na agenda diária (sem horário). Começa em hoje e volta para
 /// hoje quando outro terapeuta faz login.
 final diaSelecionadoProvider = NotifierProvider<DiaSelecionado, DateTime>(
@@ -28,7 +23,7 @@ final diaSelecionadoProvider = NotifierProvider<DiaSelecionado, DateTime>(
 class DiaSelecionado extends Notifier<DateTime> {
   @override
   DateTime build() {
-    ref.watch(_terapeutaIdProvider);
+    ref.watch(terapeutaLogadoIdProvider);
     return _hoje();
   }
 
@@ -61,7 +56,7 @@ final visaoAgendaProvider = NotifierProvider<VisaoAgendaNotifier, VisaoAgenda>(
 class VisaoAgendaNotifier extends Notifier<VisaoAgenda> {
   @override
   VisaoAgenda build() {
-    ref.watch(_terapeutaIdProvider);
+    ref.watch(terapeutaLogadoIdProvider);
     return VisaoAgenda.dia;
   }
 
@@ -72,7 +67,7 @@ class VisaoAgendaNotifier extends Notifier<VisaoAgenda> {
 final quantidadesDaSemanaProvider = FutureProvider.autoDispose
     .family<Map<DateTime, int>, DateTime>((ref, domingo) async {
       final dias = diasDaSemana(domingo);
-      final terapeutaId = ref.watch(_terapeutaIdProvider);
+      final terapeutaId = ref.watch(terapeutaLogadoIdProvider);
       if (terapeutaId == null) return contarPorDia(const [], dias);
       final repository = await ref.watch(atendimentoRepositoryProvider.future);
       final lista = await repository.listarPorPeriodo(
@@ -86,7 +81,7 @@ final quantidadesDaSemanaProvider = FutureProvider.autoDispose
 /// Atendimentos de [dia] do terapeuta logado, em ordem de horário (RKZ-03).
 final atendimentosDoDiaProvider = FutureProvider.autoDispose
     .family<List<AtendimentoDetalhado>, DateTime>((ref, dia) async {
-      final terapeutaId = ref.watch(_terapeutaIdProvider);
+      final terapeutaId = ref.watch(terapeutaLogadoIdProvider);
       if (terapeutaId == null) return const [];
       final repository = await ref.watch(atendimentoRepositoryProvider.future);
       final lista = await repository.listarPorPeriodo(
@@ -100,7 +95,7 @@ final atendimentosDoDiaProvider = FutureProvider.autoDispose
 /// Atendimento [id] do terapeuta logado (RKZ-05).
 final atendimentoProvider = FutureProvider.autoDispose
     .family<AtendimentoDetalhado?, int>((ref, id) async {
-      final terapeutaId = ref.watch(_terapeutaIdProvider);
+      final terapeutaId = ref.watch(terapeutaLogadoIdProvider);
       if (terapeutaId == null) return null;
       final repository = await ref.watch(atendimentoRepositoryProvider.future);
       return repository.buscarPorId(terapeutaId, id);
