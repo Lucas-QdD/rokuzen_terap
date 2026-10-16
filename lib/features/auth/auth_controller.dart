@@ -42,3 +42,9 @@ class AuthController extends AsyncNotifier<Terapeuta?> {
     state = const AsyncData(null);
   }
 }
+
+/// Id do terapeuta logado (`null` sem sessão). Só muda quando outro terapeuta
+/// entra ou sai, então quem depende dele não recarrega à toa.
+final terapeutaLogadoIdProvider = Provider<int?>(
+  (ref) => ref.watch(authControllerProvider.select((a) => a.value?.id)),
+);
